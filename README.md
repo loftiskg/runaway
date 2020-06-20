@@ -1,5 +1,7 @@
 # Runaway
 
+![](./images/runaway_human.gif)
+
 Runaway is a Reinforcment Learning environment developed in pygame.  The object of the game is to avoid being captured by the evil minion that is chasing after you for as long as possible.
 
 # State
