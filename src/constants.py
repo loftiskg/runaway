@@ -6,5 +6,5 @@ LEFT, RIGHT, UP, DOWN, HALT = 0, 1, 2, 3, 4
 ACTION_SIZE = 5
 STATE_SIZE = 5
 
-MINION_SPRITE_PATH = 'resources/enemy_sprite.bmp'
-PLAYER_SPRITE_PATH = 'resources/blob.bmp'
+MINION_SPRITE_PATH = 'src/resources/enemy_sprite.bmp'
+PLAYER_SPRITE_PATH = 'src/resources/blob.bmp'

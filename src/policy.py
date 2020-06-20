@@ -16,10 +16,3 @@ class MinionPolicy:
         moves.append((DOWN, distance(target_x - 1, minion_x, target_y, minion_y + 1)))
 
         return min(moves, key=lambda x: x[1])[0]
-
-
-class DQNPolicy:
-    def __init__(
-        self, epsilon,
-    ):
-        self.epsilon = epsilon
