@@ -30,7 +30,7 @@ git clone https://github.com/loftiskg/runaway.git
 cd runaway
 python -m venv env
 source env/bin/activate
-pip install -r requirements
+pip install -r requirements.txt
 python play.py
 ```
 
