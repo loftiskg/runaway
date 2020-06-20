@@ -19,6 +19,9 @@
 
 ![dqn_example](./images/pygame_dqn_5000_episodes.gif)
 
+Total rewards over time.
+![rewards_over_time](./images/rewards_over_time.png)
+
 
 
 To finish the project I need to train my agent for longer.
