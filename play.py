@@ -36,7 +36,7 @@ def run(agent_type, agent_model_path, verbose):
                 sys.exit()
         
         if agent_type == 'human':
-            move = my_agent.act(events)
+            move = move if my_agent.act(events) is None else my_agent.act(events)
         else:
             move = my_agent.act(state)
         state, reward, done = game.step(move)
