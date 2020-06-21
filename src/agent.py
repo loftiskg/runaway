@@ -3,6 +3,7 @@ import sys
 from collections import defaultdict, deque
 
 import numpy as np
+from pygame import KEYDOWN, KEYUP, K_RIGHT,K_LEFT,K_UP, K_DOWN
 
 from src.constants import *
 import pickle

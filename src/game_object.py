@@ -15,59 +15,42 @@ class GameObject:
         else:
             ValueError(f"Invalid {offset} is an offset value")
 
-    def move(self, move, lookahead=False):
+    def move(self, move):
         self.hit_wall = False
         if move == LEFT:
-            return self._move_left(lookahead)
+            self._move_left()
         elif move == RIGHT:
-            return self._move_right(lookahead)
+            self._move_right()
         elif move == UP:
-            return self._move_up(lookahead)
+            self._move_up()
         elif move == DOWN:
-            return self._move_down(lookahead)
+            self._move_down()
 
-    def _move_right(self, lookahead=False):
+    def _move_right(self):
         x, y = self.pos.topleft
-        center = self.pos.center
         if (self.pos.right + self.speed) <= WIDTH :
-            center = self.pos.centerx+self.speed, self.pos.centery
-            if not lookahead:
-                self.pos = self.image.get_rect().move(x + self.speed, y)
-        elif not lookahead:
+            self.pos = self.image.get_rect().move(x + self.speed, y)
+        else:
             self.hit_wall = True
-        return center
 
 
     def _move_left(self, lookahead=False):
         x, y = self.pos.topleft
-        center = self.pos.center
         if (self.pos.left - self.speed) >= 0:
-            center = self.pos.centerx-self.speed, self.pos.centery
-            if not lookahead:
-                self.pos = self.image.get_rect().move(x - self.speed, y)
-        elif not lookahead:
+            self.pos = self.image.get_rect().move(x - self.speed, y)
+        else:
             self.hit_wall = True
-        return center
 
-    def _move_up(self, lookahead=False):
+    def _move_up(self):
         x, y = self.pos.topleft
-        center = self.pos.center
         if (self.pos.top - self.speed) >= 0:
-            center = self.pos.centerx, self.pos.centery-self.speed
-            if not lookahead:
-                self.pos = self.image.get_rect().move(x, y - self.speed)
-        elif not lookahead:
+            self.pos = self.image.get_rect().move(x, y - self.speed)
+        else:
             self.hit_wall = True
-        return center
 
     def _move_down(self, lookahead=False):
         x, y = self.pos.topleft
-        center = self.pos.center
         if (self.pos.bottom + self.speed) <= HEIGHT:
-            center = self.pos.centerx, self.pos.centery+self.speed
-            if not lookahead:
-                self.pos = self.image.get_rect().move(x, y + self.speed)
-        elif not lookahead:
+            self.pos = self.image.get_rect().move(x, y + self.speed)
+        else:
             self.hit_wall = True
-
-        return center
