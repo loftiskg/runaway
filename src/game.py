@@ -3,12 +3,12 @@ import sys
 
 import numpy as np
 import pygame
+from gym import spaces
 
 from src.constants import *
 from src.game_object import GameObject
 from src.policy import MinionPolicy
 from src.utils import distance
-
 
 class Game:
     def __init__(self, randomize_start_pos=False):
@@ -19,6 +19,12 @@ class Game:
             pygame.image.load(MINION_SPRITE_PATH), (int(WIDTH * 0.1), int(HEIGHT * 0.1))
         )
         self.randomize_starts_pos = randomize_start_pos
+        # Example when using discrete actions:
+        self.action_space = spaces.Discrete(ACTION_SIZE)
+
+        self.observation_space = spaces.Box(low=np.array([0,0,0,0,0]),
+                                            high=np.array([WIDTH, HEIGHT, WIDTH, HEIGHT, MAX_DIST]),
+                                            dtype=np.float32)
         self.t = 0
         self.max_t = 1000
 
@@ -31,15 +37,20 @@ class Game:
         _, _, _, _, dist = self.get_state()
         return dist
 
+    def hit_wall(self):
+        return self.player.hit_wall
+
     def get_reward(self):
         if self.is_victory():
             return 1000
         if self.is_caught():
-            return -1000
+            return -100
 
-        return (100 / self.max_t) + self.get_distance() / (
-            (WIDTH ** 2 + HEIGHT ** 2) ** (1 / 2)
-        )
+        return 1
+
+        # return (100 / self.max_t) + self.get_distance() / (
+        #     (WIDTH ** 2 + HEIGHT ** 2) ** (1 / 2)
+        # )
 
     def is_caught(self):
         return self.player.pos.collidepoint(self.minion.pos.center)
@@ -52,15 +63,15 @@ class Game:
 
     def reset(self):
         if self.randomize_starts_pos:
-            player_start = (np.random.randint(WIDTH), np.random.randint(HEIGHT))
+            player_start = (np.random.randint(10, WIDTH-10), np.random.randint(10,HEIGHT-10))
             minion_start = player_start
             while (
                 distance(
                     player_start[0], minion_start[0], player_start[1], minion_start[1]
                 )
-                < 50
+                < 25
             ):
-                minion_start = (np.random.randint(WIDTH), np.random.randint(HEIGHT))
+                minion_start = (np.random.randint(10,WIDTH-10), np.random.randint(10,HEIGHT-10))
         else:
             player_start = (0, 0)
             minion_start = (WIDTH, HEIGHT)
@@ -85,4 +96,16 @@ class Game:
         reward = self.get_reward()
         done = self.is_done()
 
-        return state, reward, done
+        return state, reward, done, {}
+    
+    def lookahead(self, player_move):
+        player_pos = self.player.pos
+        minion_pos = self.minion.pos
+
+        state,reward,done,debug = self.step(player_move)
+        
+        self.player.pos = player_pos
+        self.minion.pos = minion_pos
+        return state, reward, done, debug
+
+        

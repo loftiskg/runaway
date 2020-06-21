@@ -1,5 +1,6 @@
 import random
-from collections import deque
+import sys
+from collections import defaultdict, deque, namedtuple
 
 import numpy as np
 import torch
@@ -10,8 +11,8 @@ from torch.nn import functional as F
 from src.constants import *
 from src.model import Model
 from src.utils import distance
+import pickle
 
-import sys
 
 class Human_Agent:
     def act(self, event_stream):
@@ -38,17 +39,64 @@ class Random_Agent:
         return np.random.randint(self.action_size)
 
 
+class TD_Agent:
+    def __init__(self):
+        self.Q = defaultdict(int)
+        self.gamma = 0.9
+        self.alpha = 0.01
+        self.epsilon = 0.2
+
+    def act(self, state):
+        return max(list(range(ACTION_SIZE)), key=lambda x: self.Q[(*state, x)])
+
+    def save_model(self, path):
+        with open(path, mode="wb") as f:
+            pickle.dump(self.Q, f)
+
+    def load_model(self, path):
+        with open(path, mode="rb") as f:
+            Q = pickle.load(f)
+            assert type(Q) == defaultdict
+        self.Q = Q
+
+    def train(self, env, episodes, epsilon):
+        for e in range(episodes):
+            done = False
+            state = env.reset()
+            last_500_rewards = deque(maxlen=500)
+            total_reward = 0
+            while not done:
+                if random.random() < epsilon:
+                    action = random.randint(0, ACTION_SIZE)
+                else:
+                    Qs = [self.Q[(*state, a)] for a in range(ACTION_SIZE)]
+                    action = np.random.choice(np.argwhere(Qs == np.amax(Qs)).flatten())
+                Q_sa = self.Q[(*state, action)]
+                next_state, reward, done, _ = env.step(action)
+                total_reward += reward
+                if not done:
+                    Q_sa_next_max = self.Q[(*next_state, self.act(next_state))]
+                    update = self.alpha * ((reward + self.gamma * Q_sa_next_max) - Q_sa)
+                else:
+                    update = self.alpha * (reward - Q_sa)
+                self.Q[(*state, action)] += update
+                state = next_state
+            last_500_rewards.append(total_reward)
+            if (e % 500) == 0:
+                print(f"{e} | {np.mean(last_500_rewards)}")
+
+
 class DQN_Agent:
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, learning_rate=1e-3):
         self.state_size = state_size
         self.action_size = action_size
-        self.gamma = 0.9
+        self.gamma = 0.99
         self.epsilon = 1.0  # exploration rate
-        self.replay_buffer = ReplayBuffer(max_size=100000)
-        self.epsilon_min = 0.001
+        self.replay_buffer = ReplayBuffer(max_size=50000)
+        self.epsilon_min = 0.02
         self.epsilon_decay = 0.995
         self.model = Model(self.state_size, self.action_size)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.rewards_per_episode = []
         self.current_episode = 0
         self.eval = False
@@ -77,7 +125,7 @@ class DQN_Agent:
         self.model = Model(self.state_size, self.action_size)
         self.model.load_state_dict(torch.load(path))
 
-    def train(self, episodes, env, batch_size, model_out_path):
+    def train(self, episodes, env, batch_size, model_out_path, update_every):
         self.eval = False
         for e in range(episodes):
             episode_rewards = 0
@@ -89,11 +137,11 @@ class DQN_Agent:
             while not done:
                 # get action
                 action = self.act(state)
-                next_state, reward, done = env.step(action)
+                next_state, reward, done, _ = env.step(action)
                 next_state = self.normalize(next_state)
                 total_reward += reward
                 self.replay_buffer.add((state, action, reward, next_state, done))
-                if len(self.replay_buffer) >= batch_size:
+                if len(self.replay_buffer) >= batch_size and (t % update_every) == 0:
                     # vectorized replay
                     (
                         state,
@@ -130,7 +178,7 @@ class DQN_Agent:
             self.decay_epsilon()
             self.current_episode += 1
             self.rewards_per_episode.append(total_reward)
-            print(f"{self.current_episode} | {total_reward}")
+            print(f"{self.current_episode} | {total_reward} | {self.epsilon}")
 
 
 class ReplayBuffer:

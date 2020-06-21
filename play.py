@@ -4,18 +4,17 @@ from itertools import count
 
 import pygame
 
-from src.agent import DQN_Agent, Random_Agent, Human_Agent
+from src.agent import TD_Agent, Random_Agent, Human_Agent
 from src.constants import *
 from src.game import Game
 
 
-def run(agent_type, agent_model_path, verbose):
-    game = Game()
+def run(agent_type, model_path, verbose):
+    game = Game(randomize_start_pos=False)
 
-    if agent_type == "dqn":
-        my_agent = DQN_Agent(STATE_SIZE, ACTION_SIZE)
-        my_agent.load_agent_model(agent_model_path)
-        my_agent.eval = True
+    if agent_type == "td":
+        my_agent = TD_Agent()
+        my_agent.load_model(model_path)
     
     if agent_type == "random":
         my_agent = Random_Agent(STATE_SIZE, ACTION_SIZE)
@@ -39,7 +38,7 @@ def run(agent_type, agent_model_path, verbose):
             move = move if my_agent.act(events) is None else my_agent.act(events)
         else:
             move = my_agent.act(state)
-        state, reward, done = game.step(move)
+        state, reward, done, _ = game.step(move)
 
         if verbose:
             print(state, reward, done,move)
@@ -54,10 +53,10 @@ def run(agent_type, agent_model_path, verbose):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--agent", choices=["human", "dqn", 'random'], default='human')
+    parser.add_argument("--agent", choices=["human", "td", 'random'], default='human')
     parser.add_argument("--agent_model_path", default=None)
     parser.add_argument("--verbose", "-v", action="store_true")
-
+    
     args = parser.parse_args()
     agent_type = args.agent
     agent_model_path = args.agent_model_path
