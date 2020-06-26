@@ -43,7 +43,7 @@ Built into the environment is a trainable TD agent that can learn an optimal pol
 # Summary of results:
 I trained the agent using a decaying epsilon greedy policy where the start epsilon was set at 1 and every episode epsilon was decayed at a rate of 0.995 until it reached a minimum of 0.001 where it stay constant for the rest of training.  I trained the agent for a total of 5000 episodes.  Below is a plot showing the 50 episode moving average of the rewards obtained during training, an animation of the agent following the policy learned, and an animation of the agent following a completely random policy for comparison:
 
-![rewards](images/Q_model_e5000_epsilon1.0_decay_3.png)
+![rewards](plots/Q_model_e5000_epsilon1.0_decay.png)
 
 ![trained-agent](images/q-agent.gif)
 
