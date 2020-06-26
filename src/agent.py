@@ -40,7 +40,7 @@ class Random_Agent:
         state = env.reset()
         total_reward = 0
         while not done:
-            action  = self.act(state)
+            action = self.act(state)
             state, reward, done, _ = env.step(action)
             total_reward += reward
         return total_reward
@@ -86,7 +86,7 @@ class QAgent:
         state = env.reset()
         total_reward = 0
         while not done:
-            action  = self.act(state)
+            action = self.act(state)
             state, reward, done, _ = env.step(action)
             total_reward += reward
         return total_reward
@@ -133,6 +133,6 @@ class QAgent:
                 state = next_state
             last_500_rewards.append(total_reward)
             self.rewards.append(total_reward)
-            epsilon = max(min_epsilon, epsilon*epsilon_decay)
+            epsilon = max(min_epsilon, epsilon * epsilon_decay)
             if (e % print_every) == 0:
                 print(f"{e} | {np.mean(last_500_rewards)}")

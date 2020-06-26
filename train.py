@@ -21,7 +21,7 @@ def run(
 ):
     env = Game(randomize_start_pos=False)
     agent = QAgent()
-    agent.train(env, episodes, epsilon, print_every,min_epsilon,epsilon_decay)
+    agent.train(env, episodes, epsilon, print_every, min_epsilon, epsilon_decay)
 
     if save_model:
         agent.save_model(f"models/Q_model_e{episodes}_epsilon{epsilon}_{suffix}.pkl")
