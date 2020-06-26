@@ -3,7 +3,7 @@ from itertools import count
 
 import pygame
 
-from src.agent import TD_Agent
+from src.agent import QAgent
 from src.constants import *
 from src.game import Game
 
@@ -20,7 +20,7 @@ def run(
     epsilon_decay,
 ):
     env = Game(randomize_start_pos=False)
-    agent = TD_Agent()
+    agent = QAgent()
     agent.train(env, episodes, epsilon, print_every,min_epsilon,epsilon_decay)
 
     if save_model:

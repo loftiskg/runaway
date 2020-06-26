@@ -35,8 +35,18 @@ class Random_Agent:
     def act(self, state):
         return np.random.randint(self.action_size)
 
+    def performance(self, env):
+        done = False
+        state = env.reset()
+        total_reward = 0
+        while not done:
+            action  = self.act(state)
+            state, reward, done, _ = env.step(action)
+            total_reward += reward
+        return total_reward
 
-class TD_Agent:
+
+class QAgent:
     def __init__(self):
         self.Q = dict()
         self.initial_Q_value = 0
@@ -58,17 +68,28 @@ class TD_Agent:
             Q = pickle.load(f)
         self.Q = Q
 
-    def plot_train_stats(self, path):
+    def plot_train_stats(self, path=None):
         reward_df = pd.DataFrame({"reward": self.rewards})
         moving_avg_50 = reward_df.rolling(50, min_periods=50).mean()
         plt.plot(moving_avg_50.index, moving_avg_50.reward)
         plt.xlabel("Episode")
         plt.ylabel("Total Reward (50 episode moving average)")
         plt.ylim(top=2000)
-        plt.savefig(path)
+        if path is not None:
+            plt.savefig(path)
 
     def save_stats(self, path):
         pd.DataFrame({"reward": self.rewards}).to_csv(path)
+
+    def performance(self, env):
+        done = False
+        state = env.reset()
+        total_reward = 0
+        while not done:
+            action  = self.act(state)
+            state, reward, done, _ = env.step(action)
+            total_reward += reward
+        return total_reward
 
     def train(self, env, episodes, epsilon, print_every, min_epsilon, epsilon_decay):
         self.rewards = []

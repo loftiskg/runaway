@@ -4,7 +4,7 @@ from itertools import count
 
 import pygame
 
-from src.agent import TD_Agent, Random_Agent, Human_Agent
+from src.agent import QAgent, Random_Agent, Human_Agent
 from src.constants import *
 from src.game import Game
 
@@ -13,7 +13,7 @@ def run(agent_type, model_path, verbose):
     game = Game(randomize_start_pos=False)
 
     if agent_type == "q":
-        my_agent = TD_Agent()
+        my_agent = QAgent()
         my_agent.load_model(model_path)
 
     if agent_type == "random":
