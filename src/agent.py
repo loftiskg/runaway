@@ -1,12 +1,14 @@
+import pickle
 import random
 import sys
 from collections import defaultdict, deque
 
+import matplotlib.pyplot as plt
 import numpy as np
-from pygame import KEYDOWN, KEYUP, K_RIGHT,K_LEFT,K_UP, K_DOWN
+import pandas as pd
+from pygame import K_DOWN, K_LEFT, K_RIGHT, K_UP, KEYDOWN, KEYUP
 
 from src.constants import *
-import pickle
 
 
 class Human_Agent:
@@ -36,13 +38,16 @@ class Random_Agent:
 
 class TD_Agent:
     def __init__(self):
-        self.Q = defaultdict(int)
+        self.Q = dict()
+        self.initial_Q_value = 0
         self.gamma = 0.9
         self.alpha = 0.01
-        self.epsilon = 0.2
 
     def act(self, state):
-        return max(list(range(ACTION_SIZE)), key=lambda x: self.Q[(*state, x)])
+        return max(
+            list(range(ACTION_SIZE)),
+            key=lambda x: self.Q.get((*state, x), self.initial_Q_value),
+        )
 
     def save_model(self, path):
         with open(path, mode="wb") as f:
@@ -51,31 +56,62 @@ class TD_Agent:
     def load_model(self, path):
         with open(path, mode="rb") as f:
             Q = pickle.load(f)
-            assert type(Q) == defaultdict
         self.Q = Q
 
-    def train(self, env, episodes, epsilon):
+    def plot_train_stats(self, path):
+        reward_df = pd.DataFrame({"reward": self.rewards})
+        moving_avg_50 = reward_df.rolling(50, min_periods=50).mean()
+        plt.plot(moving_avg_50.index, moving_avg_50.reward)
+        plt.xlabel("Episode")
+        plt.ylabel("Total Reward (50 episode moving average)")
+        plt.ylim(top=2000)
+        plt.savefig(path)
+
+    def save_stats(self, path):
+        pd.DataFrame({"reward": self.rewards}).to_csv(path)
+
+    def train(self, env, episodes, epsilon, print_every, min_epsilon, epsilon_decay):
+        self.rewards = []
+        last_500_rewards = deque(maxlen=100)
+
+        # for many episodes
         for e in range(episodes):
             done = False
             state = env.reset()
-            last_500_rewards = deque(maxlen=500)
             total_reward = 0
             while not done:
+                # epsilon greedy: behavior policy, choose action to take
                 if random.random() < epsilon:
                     action = random.randint(0, ACTION_SIZE)
                 else:
-                    Qs = [self.Q[(*state, a)] for a in range(ACTION_SIZE)]
+                    Qs = [
+                        self.Q.get((*state, a), self.initial_Q_value)
+                        for a in range(ACTION_SIZE)
+                    ]
                     action = np.random.choice(np.argwhere(Qs == np.amax(Qs)).flatten())
-                Q_sa = self.Q[(*state, action)]
+                # get the Q value for current state and action chosen above
+                Q_sa = self.Q.get((*state, action), self.initial_Q_value)
+
+                # take the action and observe the reward and next state
                 next_state, reward, done, _ = env.step(action)
                 total_reward += reward
+
+                # do the Q-learning update
                 if not done:
-                    Q_sa_next_max = self.Q[(*next_state, self.act(next_state))]
+                    Q_sa_next_max = self.Q.get(
+                        (*next_state, self.act(next_state)), self.initial_Q_value
+                    )
                     update = self.alpha * ((reward + self.gamma * Q_sa_next_max) - Q_sa)
                 else:
                     update = self.alpha * (reward - Q_sa)
-                self.Q[(*state, action)] += update
+                self.Q[(*state, action)] = (
+                    self.Q.get((*state, action), self.initial_Q_value) + update
+                )
+
+                # update current state for next time step
                 state = next_state
             last_500_rewards.append(total_reward)
-            if (e % 500) == 0:
+            self.rewards.append(total_reward)
+            epsilon = max(min_epsilon, epsilon*epsilon_decay)
+            if (e % print_every) == 0:
                 print(f"{e} | {np.mean(last_500_rewards)}")

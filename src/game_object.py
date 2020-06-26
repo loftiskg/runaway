@@ -1,5 +1,6 @@
 from src.constants import *
 
+
 class GameObject:
     def __init__(self, image, speed, start_pos, offset):
         self.speed = speed
@@ -28,11 +29,10 @@ class GameObject:
 
     def _move_right(self):
         x, y = self.pos.topleft
-        if (self.pos.right + self.speed) <= WIDTH :
+        if (self.pos.right + self.speed) <= WIDTH:
             self.pos = self.image.get_rect().move(x + self.speed, y)
         else:
             self.hit_wall = True
-
 
     def _move_left(self, lookahead=False):
         x, y = self.pos.topleft

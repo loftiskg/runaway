@@ -6,7 +6,7 @@ from src.utils import distance
 
 class MinionPolicy:
     def get_move(self, state):
-        target_x, target_y, minion_x, minion_y, _ = state
+        target_x, target_y, minion_x, minion_y = state
         current_distance = distance(target_x, minion_x, target_y, minion_y)
 
         moves = []
