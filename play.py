@@ -62,7 +62,7 @@ if __name__ == "__main__":
     agent_model_path = args.agent_model_path
     verbose = args.verbose
 
-    if agent_model_path is None and args == "td":
+    if agent_model_path is None and args == "q":
         raise ValueError("Must specify the path to model if playing in agent mode")
 
     run(agent_type, agent_model_path, verbose)
